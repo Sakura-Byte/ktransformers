@@ -1365,6 +1365,46 @@ class MixtralForCausalLM(MixtralPreTrainedModel):
 
     def get_decoder(self):
         return self.model
+    
+    def _get_logits_warper(self, generation_config, device=None):
+        from transformers.generation.logits_process import (
+            LogitsProcessorList,
+            TemperatureLogitsWarper,
+            TopPLogitsWarper,
+            TopKLogitsWarper,
+            MinPLogitsWarper,
+            TypicalLogitsWarper,
+        )
+        
+        # Initialize with an empty processor list
+        warpers = LogitsProcessorList()
+        
+        # Add temperature warper if applicable
+        temperature = generation_config.temperature
+        if temperature is not None and temperature != 1.0:
+            warpers.append(TemperatureLogitsWarper(temperature))
+            
+        # Add top_p warper if applicable
+        top_p = generation_config.top_p
+        if top_p is not None and top_p < 1.0:
+            warpers.append(TopPLogitsWarper(top_p))
+        
+        # Add top_k warper if applicable
+        top_k = generation_config.top_k
+        if top_k is not None and top_k != 0:
+            warpers.append(TopKLogitsWarper(top_k))
+            
+        # Add min_p warper if applicable
+        min_p = getattr(generation_config, "min_p", None)
+        if min_p is not None and min_p > 0.0:
+            warpers.append(MinPLogitsWarper(min_p))
+            
+        # Add typical_p warper if applicable
+        typical_p = getattr(generation_config, "typical_p", None)
+        if typical_p is not None and typical_p > 0.0:
+            warpers.append(TypicalLogitsWarper(typical_p))
+            
+        return warpers
 
     @add_start_docstrings_to_model_forward(MIXTRAL_INPUTS_DOCSTRING)
     @replace_return_docstrings(output_type=MoeCausalLMOutputWithPast, config_class=_CONFIG_FOR_DOC)
