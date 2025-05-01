@@ -252,6 +252,7 @@ class KQwen3MoeAttention(BaseInjectedModule, Qwen3MoeAttention):
                 bsz_tensors: torch.Tensor,
                 page_idx: torch.Tensor,
                 page_offset: torch.Tensor,
+                attention_mask: Optional[torch.Tensor] = None,  # Add this parameter
                 ):
         q_len, _ = hidden_states.size()
 
