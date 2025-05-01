@@ -59,6 +59,9 @@ class RMSNorm(DeepseekV3RMSNorm, BaseInjectedModule):
         residual: Optional[torch.Tensor] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         #return self.forward_native(x, residual)
+        original_shape = x.shape
+        if x.ndim > 2:
+            x = x.reshape(-1, original_shape[-1])
         if batch_size_tensor is None:
             return self.forward_native(x)
         if residual is not None:
