@@ -58,10 +58,6 @@ class RMSNorm(DeepseekV3RMSNorm, BaseInjectedModule):
         batch_size_tensor: torch.Tensor = None,
         residual: Optional[torch.Tensor] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-        # Save original shape
-        original_shape = x.shape
-        # Reshape to 2D: (batch_size * seq_length, hidden_size)
-        x = x.view(-1, x.shape[-1])
         
         if batch_size_tensor is None:
             return self.forward_native(x)
@@ -70,8 +66,6 @@ class RMSNorm(DeepseekV3RMSNorm, BaseInjectedModule):
             return x, residual
             
         out = rmsnorm(x, self.weight.data, batch_size_tensor, self.variance_epsilon)
-        # Restore original shape
-        out = out.view(original_shape)
         return out
 
     def forward_native(
@@ -144,8 +138,9 @@ class KQwen3MoeRMSNorm(Qwen3MoeRMSNorm, BaseInjectedModule):
         batch_size_tensor: torch.Tensor = None,
         residual: Optional[torch.Tensor] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+
         #return self.forward_native(x, residual)
-        bsz, hidden_size = x.shape
+        original_shape = x.shape
         x = x.view(-1, self.orig_module.hidden_size)
         if batch_size_tensor is None:
             return self.forward_native(x)
@@ -156,7 +151,7 @@ class KQwen3MoeRMSNorm(Qwen3MoeRMSNorm, BaseInjectedModule):
             return x, residual
         # print(x.shape, self.weight.data.shape, self.variance_epsilon, x.dtype, self.weight.data.dtype, x.device, self.weight.device, x.is_contiguous(), self.weight.data.is_contiguous())
         out = rmsnorm(x, self.weight.data, batch_size_tensor,self.variance_epsilon)
-        out = out.view(bsz, hidden_size)
+        out = out.view(original_shape)
         return out
 
     def forward_native(
