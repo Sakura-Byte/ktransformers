@@ -58,19 +58,20 @@ class RMSNorm(DeepseekV3RMSNorm, BaseInjectedModule):
         batch_size_tensor: torch.Tensor = None,
         residual: Optional[torch.Tensor] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-        #return self.forward_native(x, residual)
+        # Save original shape
         original_shape = x.shape
-        if x.ndim > 2:
-            x = x.reshape(-1, original_shape[-1])
+        # Reshape to 2D: (batch_size * seq_length, hidden_size)
+        x = x.view(-1, x.shape[-1])
+        
         if batch_size_tensor is None:
             return self.forward_native(x)
         if residual is not None:
             fused_add_rmsnorm(x, residual, self.weight.data, batch_size_tensor, self.variance_epsilon)
-            #residual = x + residual
-            #out = rmsnorm(residual, self.weight.data, batch_size_tensor, self.variance_epsilon)
             return x, residual
-        # print(x.shape, self.weight.data.shape, self.variance_epsilon, x.dtype, self.weight.data.dtype, x.device, self.weight.device, x.is_contiguous(), self.weight.data.is_contiguous())
-        out = rmsnorm(x, self.weight.data, batch_size_tensor,self.variance_epsilon)
+            
+        out = rmsnorm(x, self.weight.data, batch_size_tensor, self.variance_epsilon)
+        # Restore original shape
+        out = out.view(original_shape)
         return out
 
     def forward_native(
