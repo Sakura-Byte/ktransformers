@@ -203,7 +203,7 @@ def prefill_and_generate(model, tokenizer, inputs, max_new_tokens=10000, use_cud
         )
         try: # transformers==4.43
             logits_warper = (
-                model._get_logits_warper(generation_config,device=inputs.device)
+                model._get_logits_warper(generation_config, inputs.device)
             )
         except: 
             logits_warper = (

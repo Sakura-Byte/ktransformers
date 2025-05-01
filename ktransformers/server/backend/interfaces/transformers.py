@@ -224,7 +224,7 @@ class TransformersInterface(BackendInterfaceBase):
         self.inputs = inputs
         try: # transformers==4.43
             self.logits_warper = (
-                self.model._get_logits_warper(generation_config, device=device)
+                self.model._get_logits_warper(generation_config, device)
             )
         except: 
             self.logits_warper = (
