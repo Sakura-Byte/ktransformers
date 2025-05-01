@@ -1663,7 +1663,7 @@ class DeepseekV3ForCausalLM(DeepseekV3PreTrainedModel):
             
         # Add typical_p warper if applicable
         typical_p = getattr(generation_config, "typical_p", None)
-        if typical_p is not None and typical_p > 0.0:
+        if typical_p is not None and 0.0 < typical_p < 1.0:
             warpers.append(TypicalLogitsWarper(typical_p))
             
         return warpers
